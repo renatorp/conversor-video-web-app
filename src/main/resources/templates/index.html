@@ -12,31 +12,29 @@
 			<div class="jumbotron">
 				<div class="row text-left">
 					<div class="row">
-						<h2>Informe um vídeo e escolha o formato para o qual deseja
-							convertê-lo.</h2>
+						<h2>Informe um vídeo e escolha o formato para o qual deseja convertê-lo.</h2>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<form>
+		<form th:action="@{/videos/converter/}" method="POST" th:object="${novoVideo}" enctype="multipart/form-data">
 			<div class="input-group mb-3">
 				<div class="input-group-prepend">
 					<span class="input-group-text">Upload</span>
 				</div>
 				<div class="custom-file">
-					<input type="file" class="custom-file-input" id="inputGroupFile01">
-					<label class="custom-file-label" for="inputGroupFile01">Escolha
-						um vídeo</label>
+					<input type="file" th:field="*{file}" class="custom-file-input" id="inputGroupFile01">
+					<label class="custom-file-label" for="inputGroupFile01">Escolha vídeo</label>
 				</div>
 			</div>
 			<div class="form-row">
 				<div class="form-group col-md-6">
-					<select id="inputState" class="form-control">
-						<option selected>Selecione o formato de destino</option>
-						<option>MP4</option>
-						<option>WebM</option>
-						<option>Ogg</option>
+					<select id="inputState" class="form-control" th:field="*{formatoDestino}">
+						<option value="" selected>Selecione o formato de destino</option>
+						<option value="1">MP4</option>
+						<option value="2">WebM</option>
+						<option value="3">Ogg</option>
 					</select>
 				</div>
 			</div>
@@ -58,10 +56,8 @@
 					<td th:text="${video.id}">Id</td>
 					<td th:text="${video.nome}">Nome</td>
 					<td th:text="${video.formato}">Formato</td>
-					<td><a th:href="${'/products/edit/' + video.id}"
-						class="btn btn-light">Visualizar</a></td>
-					<td><a th:href="${'/products/delete/' + video.id}"
-						class="btn btn-danger">Excluir</a></td>
+					<td><a th:href="${'/videos/visualizar/' + video.id}" class="btn btn-light">Visualizar</a></td>
+					<td><a th:href="${'/videos/excluir/' + video.id}" class="btn btn-danger">Excluir</a></td>
 				</tr>
 			</table>
 		</div>
