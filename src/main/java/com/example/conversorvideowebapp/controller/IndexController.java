@@ -6,15 +6,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.example.conversorvideowebapp.deleteme.Product;
+import com.example.conversorvideowebapp.model.Video;
 
 @Controller
-public class ProductController {
+public class IndexController {
 
 	@RequestMapping(path = "/")
 	public String index(Model model) {
-		Product product = new Product("1", "P221", "Aquele Producto", "RETORNÁVEL", "SEM PREÇO", 999999.99D);
-		model.addAttribute("products", Arrays.asList(product));
+		Video video = new Video("1", "Video 1", "mkv");
+		model.addAttribute("videos", Arrays.asList(video));
 		return "index";
 	}
 

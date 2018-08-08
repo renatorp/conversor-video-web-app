@@ -12,45 +12,56 @@
 			<div class="jumbotron">
 				<div class="row text-left">
 					<div class="row">
-						<h2>Informe um vídeo e escolha o formato para o qual deseja convertê-lo.</h2>
+						<h2>Informe um vídeo e escolha o formato para o qual deseja
+							convertê-lo.</h2>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="input-group mb-3">
-			<div class="input-group-prepend">
-				<span class="input-group-text">Upload</span>
+		<form>
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Upload</span>
+				</div>
+				<div class="custom-file">
+					<input type="file" class="custom-file-input" id="inputGroupFile01">
+					<label class="custom-file-label" for="inputGroupFile01">Escolha
+						um vídeo</label>
+				</div>
 			</div>
-			<div class="custom-file">
-				<input type="file" class="custom-file-input" id="inputGroupFile01">
-				<label class="custom-file-label" for="inputGroupFile01">Escolha um vídeo</label>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<select id="inputState" class="form-control">
+						<option selected>Selecione o formato de destino</option>
+						<option>MP4</option>
+						<option>WebM</option>
+						<option>Ogg</option>
+					</select>
+				</div>
 			</div>
-		</div>
-		<div th:if="${not #lists.isEmpty(products)}">
+			<button type="submit" class="btn btn-primary">Submeter</button>
+		</form>
+
+		<p />
+		<div th:if="${not #lists.isEmpty(videos)}">
 			<h2>Todos os vídeos</h2>
 			<table class="table table-striped">
 				<tr>
 					<th>Id</th>
-					<th>Name</th>
-					<th>Description</th>
-					<th>Type</th>
-					<th>Category</th>
-					<th>Price</th>
-					<th>Edit</th>
-					<th>Delete</th>
+					<th>Nome</th>
+					<th>Formato</th>
+					<th>Visualizar</th>
+					<th>Excluir</th>
 				</tr>
-				<tr th:each="product : ${products}">
-					<td th:text="${product.id}">Id</td>
-					<td th:text="${product.name}">Name</td>
-					<td th:text="${product.description}">Description</td>
-					<td th:text="${product.type}">Type</td>
-					<td th:text="${product.category}">Category</td>
-					<td th:text="${product.price}">Price</td>
-					<td><a th:href="${'/products/edit/' + product.id}"
-						class="btn btn-default">Edit</a></td>
-					<td><a th:href="${'/products/delete/' + product.id}"
-						class="btn btn-danger">Delete</a></td>
+				<tr th:each="video : ${videos}">
+					<td th:text="${video.id}">Id</td>
+					<td th:text="${video.nome}">Nome</td>
+					<td th:text="${video.formato}">Formato</td>
+					<td><a th:href="${'/products/edit/' + video.id}"
+						class="btn btn-light">Visualizar</a></td>
+					<td><a th:href="${'/products/delete/' + video.id}"
+						class="btn btn-danger">Excluir</a></td>
 				</tr>
 			</table>
 		</div>
