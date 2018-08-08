@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8" />
-<title>Products - Spring MVC Application</title>
-<th:block th:include="layout/header"></th:block>
+	<meta charset="UTF-8" />
+	<title>Aplicação Para Conversão de Vídeo</title>
+	<th:block th:include="layout/header"></th:block>
 </head>
 <body>
 	<div class="container">
@@ -66,5 +66,12 @@
 			</table>
 		</div>
 	</div>
+	<script type="text/javascript">
+		$("#inputGroupFile01").on('change', function() {
+			var fileName = $(this).val();
+			$(this).next('.custom-file-label').html(fileName);
+		});
+	</script>
+
 </body>
 </html>
