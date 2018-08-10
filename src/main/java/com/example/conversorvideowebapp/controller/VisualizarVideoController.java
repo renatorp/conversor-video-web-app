@@ -11,9 +11,9 @@ public class VisualizarVideoController {
 	/**
 	 * Redireciona para a página de visualização de vídeo
 	 */
-	@GetMapping(path = "/visualizarVideo/{id}")
-	public String visualizarVideo(Model model, @PathVariable("id") String videoId) {
-		// TODO: model.addAttribute("video", service.buscarVideo(id));
+	@GetMapping(path = "/visualizarVideo/{fileName}")
+	public String visualizarVideo(Model model, @PathVariable("fileName") String fileName) {
+		// TODO: buscar de serviço url de video para ser enviada
 		return "visualizar-video";
 	}
 

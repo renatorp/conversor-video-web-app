@@ -1,16 +1,21 @@
 package com.example.conversorvideowebapp.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
+import com.example.conversorvideowebapp.helper.FileHelper;
 
 @Service
 public class S3StorageService {
@@ -21,14 +26,43 @@ public class S3StorageService {
 	@Value("${app.s3.bucketName}")
 	private String bucketName;
 
+	@Autowired
+	private FileHelper fileHelper;
+
 	/**
-	 * Envia arquivo para S3
+	 * Envia arquivo para S3 com visibilidade pública.
 	 * 
 	 * @param fileName
 	 * @param file
+	 * @return
 	 */
-	public void uploadFile(String fileName, File file) {
-		s3client.putObject(new PutObjectRequest(bucketName, fileName, file));
+	public PutObjectResult uploadFile(String fileName, File file) {
+		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileName, file);
+
+		// Envia arquivo com visibilidade pública.
+		putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);
+
+		return s3client.putObject(putObjectRequest);
+	}
+
+	/**
+	 * Converte arquvio multipart e envia para S3 com visibilidade pública
+	 * 
+	 * @param fileName
+	 * @param multipartFile
+	 * @return
+	 * @throws IOException
+	 */
+	public PutObjectResult uploadMultipartFile(String fileName, MultipartFile multipartFile) throws IOException {
+
+		// TODO: Tratar excessão corretamente
+		File file = fileHelper.convertMultiPartToFile(multipartFile);
+
+		PutObjectResult putObjectRequest = uploadFile(fileName, file);
+
+		file.delete(); // Deleta arquivo temporário
+
+		return putObjectRequest;
 	}
 
 	/**
@@ -42,4 +76,13 @@ public class S3StorageService {
 		return s3object.getObjectContent();
 	}
 
+	/**
+	 * Obtém url de acesso público a arquivo
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public String getUrlFile(String fileName) {
+		return s3client.getUrl(bucketName, fileName).toExternalForm();
+	}
 }

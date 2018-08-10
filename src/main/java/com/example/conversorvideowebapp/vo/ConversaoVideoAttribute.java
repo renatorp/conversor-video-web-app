@@ -1,4 +1,4 @@
-package com.example.conversorvideowebapp.controller.vo;
+package com.example.conversorvideowebapp.vo;
 
 import org.springframework.web.multipart.MultipartFile;
 
