@@ -2,19 +2,15 @@ package com.example.conversorvideowebapp.service;
 
 import java.util.ArrayList;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.conversorvideowebapp.exception.ApplicationException;
 import com.example.conversorvideowebapp.helper.encoder.EncoderOutputRequestFactory;
 import com.example.conversorvideowebapp.helper.encoder.OutputFormatStrategy;
 import com.example.conversorvideowebapp.vo.EncodeVideoInputVO;
@@ -24,8 +20,6 @@ import com.example.conversorvideowebapp.vo.EncoderResponseBody;
 
 @Service
 public class EncoderService {
-
-	Logger log = LoggerFactory.getLogger(EncoderService.class);
 
 	@Value("${app.zencoder.job.notificationEmail}")
 	private String notificationEmail;
@@ -48,8 +42,9 @@ public class EncoderService {
 	 * @param videoWebFormat
 	 * @param publicUrl
 	 * @return
+	 * @throws ApplicationException
 	 */
-	public String encodeVideoForWeb(EncodeVideoInputVO inputData) {
+	public String encodeVideoForWeb(EncodeVideoInputVO inputData) throws ApplicationException {
 
 		try {
 
@@ -62,20 +57,9 @@ public class EncoderService {
 
 			return response.getBody().getOutputs().iterator().next().getUrl();
 
-		} catch (HttpClientErrorException e) {
-			log.error("ERROR", e);
-
-		} catch (HttpServerErrorException e) {
-			log.error("ERROR", e);
-
-		} catch (ResourceAccessException e) {
-			log.error("ERROR", e);
-
 		} catch (RestClientException e) {
-			log.error("ERROR", e);
+			throw new ApplicationException("Ocorreu um erro ao invocar operação rest.", e);
 		}
-
-		return null;
 
 	}
 

@@ -111,8 +111,10 @@ public class IndexController {
 	 * @param inputUrl
 	 * @param videoWebFormat
 	 * @return
+	 * @throws ApplicationException
 	 */
-	private String encodeAndStoreVideo(String fileName, String inputUrl, VideoWebFormat videoWebFormat) {
+	private String encodeAndStoreVideo(String fileName, String inputUrl, VideoWebFormat videoWebFormat)
+			throws ApplicationException {
 
 		String outputUrl = new StringBuilder().append("s3://").append(s3StorageService.getBucketName()).append("/")
 				.append(outputDir).append("/").append(fileName).append(".").append(videoWebFormat.getExtension())
@@ -130,8 +132,7 @@ public class IndexController {
 	 * @throws IOException
 	 * @throws ApplicationException
 	 */
-	private String uploadToS3Storage(MultipartFile multipartFile, String fileName)
-			throws IOException, ApplicationException {
+	private String uploadToS3Storage(MultipartFile multipartFile, String fileName) throws ApplicationException {
 
 		String filePath = inputDir + "/" + fileName;
 
