@@ -1,7 +1,6 @@
 package com.example.conversorvideowebapp.controller;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,9 +10,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.conversorvideowebapp.helper.FileHelper;
-import com.example.conversorvideowebapp.model.Video;
 import com.example.conversorvideowebapp.service.EncoderService;
 import com.example.conversorvideowebapp.service.S3StorageService;
 import com.example.conversorvideowebapp.vo.ConversaoVideoAttribute;
@@ -41,16 +41,13 @@ public class IndexController {
 	 */
 	@GetMapping(path = "/")
 	public String index(Model model) {
-
-		// TODO Remover id de vídeo, utilizar apenas o nome para identificar
-		Video video = new Video("1", "Video 1", "mkv");
-		model.addAttribute("videos", Arrays.asList(video));
 		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
 		return "index";
 	}
 
 	@PostMapping(path = "/videos/converter")
-	public String converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody) throws IOException {
+	public RedirectView converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody,
+			RedirectAttributes redirectAttributes) throws IOException {
 
 		// TODO Validar formato de arquivos enviados
 
@@ -60,9 +57,13 @@ public class IndexController {
 
 		String encodeVideoUrl = encodeVideo(fileHelper.extractName(originalFileName), inputUrl, "mp4");
 
-		model.addAttribute("videoUrl", encodeVideoUrl);
+		// Redireciona para index
+		RedirectView redirectView = new RedirectView();
+		redirectView.setContextRelative(true);
+		redirectAttributes.addFlashAttribute("videoUrl", encodeVideoUrl);
+		redirectView.setUrl("/");
 
-		return "redirect:/visualizarVideo";
+		return redirectView;
 	}
 
 	/**

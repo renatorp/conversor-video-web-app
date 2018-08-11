@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-	<meta charset="UTF-8" />
-	<title>Aplicação Para Conversão de Vídeo</title>
-	<th:block th:include="layout/header"></th:block>
+<meta charset="UTF-8" />
+<title>Aplicação Para Conversão de Vídeo</title>
+<th:block th:include="layout/header"></th:block>
 </head>
 <body>
 	<div class="container">
@@ -12,25 +12,29 @@
 			<div class="jumbotron">
 				<div class="row text-left">
 					<div class="row">
-						<h2>Informe um vídeo e escolha o formato para o qual deseja convertê-lo.</h2>
+						<h2>Informe um vídeo e escolha o formato para o qual deseja
+							convertê-lo.</h2>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<form th:action="@{/videos/converter/}" method="POST" th:object="${novoVideo}" enctype="multipart/form-data">
+		<form th:action="@{/videos/converter/}" method="POST"
+			th:object="${novoVideo}" enctype="multipart/form-data">
 			<div class="input-group mb-3">
 				<div class="input-group-prepend">
 					<span class="input-group-text">Upload</span>
 				</div>
 				<div class="custom-file">
-					<input type="file" th:field="*{file}" class="custom-file-input" id="inputGroupFile01">
-					<label class="custom-file-label" for="inputGroupFile01">Escolha vídeo</label>
+					<input type="file" th:field="*{file}" class="custom-file-input"
+						id="inputGroupFile01"> <label class="custom-file-label"
+						for="inputGroupFile01">Escolha vídeo</label>
 				</div>
 			</div>
 			<div class="form-row">
 				<div class="form-group col-md-6">
-					<select id="inputState" class="form-control" th:field="*{formatoDestino}">
+					<select id="inputState" class="form-control"
+						th:field="*{formatoDestino}">
 						<option value="" selected>Selecione o formato de destino</option>
 						<option value="1">MP4</option>
 						<option value="2">WebM</option>
@@ -42,25 +46,20 @@
 		</form>
 
 		<p />
-		<div th:if="${not #lists.isEmpty(videos)}">
-			<h2>Todos os vídeos</h2>
-			<table class="table table-striped">
-				<tr>
-					<th>Id</th>
-					<th>Nome</th>
-					<th>Formato</th>
-					<th>Visualizar</th>
-					<th>Excluir</th>
-				</tr>
-				<tr th:each="video : ${videos}">
-					<td th:text="${video.id}">Id</td>
-					<td th:text="${video.nome}">Nome</td>
-					<td th:text="${video.formato}">Formato</td>
-					<td><a th:href="${'/videos/visualizar/' + video.id}" class="btn btn-light">Visualizar</a></td>
-					<td><a th:href="${'/videos/excluir/' + video.id}" class="btn btn-danger">Excluir</a></td>
-				</tr>
-			</table>
+
+		<div th:if="${videoUrl != null}">
+
+			<video controls>
+				<source th:src="${videoUrl}" type="video/mp4">
+				<!-- <source src="myVideo.webm" type="video/webm"> -->
+				<p>
+					Your browser doesn't support HTML5 video. Here is a <a
+						href="myVideo.mp4">link to the video</a> instead.
+				</p>
+			</video>
+
 		</div>
+
 	</div>
 	<script type="text/javascript">
 		$("#inputGroupFile01").on('change', function() {
