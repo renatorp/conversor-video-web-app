@@ -5,13 +5,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class ConversaoVideoAttribute {
 
 	private MultipartFile file;
-	private String formatoDestino;
+	private Integer formatoDestino;
 
-	public String getFormatoDestino() {
+	public Integer getFormatoDestino() {
 		return formatoDestino;
 	}
 
-	public void setFormatoDestino(String formatoDestino) {
+	public void setFormatoDestino(Integer formatoDestino) {
 		this.formatoDestino = formatoDestino;
 	}
 

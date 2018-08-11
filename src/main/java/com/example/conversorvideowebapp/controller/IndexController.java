@@ -13,10 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import com.example.conversorvideowebapp.enums.VideoWebFormat;
 import com.example.conversorvideowebapp.helper.FileHelper;
 import com.example.conversorvideowebapp.service.EncoderService;
 import com.example.conversorvideowebapp.service.S3StorageService;
 import com.example.conversorvideowebapp.vo.ConversaoVideoAttribute;
+import com.example.conversorvideowebapp.vo.EncodeVideoInputVO;
 
 @Controller
 public class IndexController {
@@ -55,12 +57,14 @@ public class IndexController {
 
 		String inputUrl = uploadToS3Storage(requestBody.getFile(), originalFileName);
 
-		String encodeVideoUrl = encodeVideo(fileHelper.extractName(originalFileName), inputUrl, "mp4");
+		VideoWebFormat videoFormat = VideoWebFormat.value(requestBody.getFormatoDestino());
+		String encodeVideoUrl = encodeVideo(fileHelper.extractName(originalFileName), inputUrl, videoFormat);
 
 		// Redireciona para index
 		RedirectView redirectView = new RedirectView();
 		redirectView.setContextRelative(true);
 		redirectAttributes.addFlashAttribute("videoUrl", encodeVideoUrl);
+		redirectAttributes.addFlashAttribute("videoContentType", "video/" + videoFormat.getExtension());
 		redirectView.setUrl("/");
 
 		return redirectView;
@@ -72,15 +76,16 @@ public class IndexController {
 	 * 
 	 * @param fileName
 	 * @param inputUrl
-	 * @param outputExtension
+	 * @param videoWebFormat
 	 * @return
 	 */
-	private String encodeVideo(String fileName, String inputUrl, String outputExtension) {
+	private String encodeVideo(String fileName, String inputUrl, VideoWebFormat videoWebFormat) {
 
 		String outputUrl = new StringBuilder().append("s3://").append(s3StorageService.getBucketName()).append("/")
-				.append(outputDir).append("/").append(fileName).append(".").append(outputExtension).toString();
+				.append(outputDir).append("/").append(fileName).append(".").append(videoWebFormat.getExtension())
+				.toString();
 
-		return enconderService.encodeVideoForWeb(inputUrl, fileName, outputUrl);
+		return enconderService.encodeVideoForWeb(new EncodeVideoInputVO(inputUrl, fileName, outputUrl, videoWebFormat));
 	}
 
 	/**

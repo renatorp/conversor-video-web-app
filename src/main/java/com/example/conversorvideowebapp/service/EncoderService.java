@@ -15,6 +15,9 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.conversorvideowebapp.helper.encoder.EncoderOutputRequestFactory;
+import com.example.conversorvideowebapp.helper.encoder.OutputFormatStrategy;
+import com.example.conversorvideowebapp.vo.EncodeVideoInputVO;
 import com.example.conversorvideowebapp.vo.EncoderInputRequestBody;
 import com.example.conversorvideowebapp.vo.EncoderOutputRequest;
 import com.example.conversorvideowebapp.vo.EncoderResponseBody;
@@ -42,16 +45,17 @@ public class EncoderService {
 	 * 
 	 * @param outputUrl
 	 * @param fileName
+	 * @param videoWebFormat
 	 * @param publicUrl
 	 * @return
 	 */
-	public String encodeVideoForWeb(String inputUrl, String fileName, String outputUrl) {
+	public String encodeVideoForWeb(EncodeVideoInputVO inputData) {
 
 		try {
 
 			RestTemplate restTemplate = new RestTemplate();
 
-			HttpEntity<EncoderInputRequestBody> entity = createRequestBody(inputUrl, fileName, outputUrl);
+			HttpEntity<EncoderInputRequestBody> entity = createRequestBody(inputData);
 
 			ResponseEntity<EncoderResponseBody> response = restTemplate.postForEntity(zencoderUrl, entity,
 					EncoderResponseBody.class);
@@ -81,80 +85,29 @@ public class EncoderService {
 	 * @param inputUrl
 	 * @param outputUrl
 	 * @param fileName
+	 * @param videoWebFormat
 	 * @return
 	 */
-	private HttpEntity<EncoderInputRequestBody> createRequestBody(String inputUrl, String fileName, String outputUrl) {
+	private HttpEntity<EncoderInputRequestBody> createRequestBody(EncodeVideoInputVO inputData) {
 
 		HttpHeaders headers = createHeaders();
 
 		EncoderInputRequestBody requestObj = new EncoderInputRequestBody();
-		requestObj.setInput(inputUrl);
+		requestObj.setInput(inputData.getInputUrl());
 		requestObj.setNotifications(notificationEmail);
 		requestObj.setOutput(new ArrayList<>());
 
-		requestObj.getOutput().add(createMp4EncoderOutputRequest(outputUrl, fileName));
+		requestObj.getOutput().add(createEncoderOutputRequest(inputData));
 
 		return new HttpEntity<>(requestObj, headers);
 	}
 
-	/**
-	 * Cria requisição de output para formato mp4.
-	 * 
-	 * @param outputUrl
-	 * @param fileName
-	 * @return
-	 */
-	private EncoderOutputRequest createMp4EncoderOutputRequest(String outputUrl, String fileName) {
-		EncoderOutputRequest output = createPlainEncoderOutputRequst(outputUrl, fileName);
-		output.setFilename(fileName + ".mp4");
-		output.setLabel("mp4 high");
-		output.setH264_profile("high");
-		return output;
-	}
+	private EncoderOutputRequest createEncoderOutputRequest(EncodeVideoInputVO inputData) {
 
-	/**
-	 * Cria requisição de output para formato webm.
-	 * 
-	 * @param outputUrl
-	 * @param fileName
-	 * @return
-	 */
-	private EncoderOutputRequest createWebmEncoderOutputRequest(String outputUrl, String fileName) {
-		EncoderOutputRequest output = createPlainEncoderOutputRequst(outputUrl, fileName);
-		output.setFilename(fileName + ".webm");
-		output.setLabel("webm");
-		output.setFormat("webm");
-		return output;
-	}
+		EncoderOutputRequestFactory factory = EncoderOutputRequestFactory
+				.create(OutputFormatStrategy.of(inputData.getVideoWebFormat()));
 
-	/**
-	 * Cria requisição de output para formato ogg.
-	 * 
-	 * @param outputUrl
-	 * @param fileName
-	 * @return
-	 */
-	private EncoderOutputRequest createOggEncoderOutputRequest(String outputUrl, String fileName) {
-		EncoderOutputRequest output = createPlainEncoderOutputRequst(outputUrl, fileName);
-		output.setFilename(fileName + ".ogg");
-		output.setLabel("ogg");
-		output.setFormat("ogg");
-		return output;
-	}
-
-	/**
-	 * Cria requisição de output público sem formato específico.
-	 * 
-	 * @param outputUrl
-	 * @param fileName
-	 * @return
-	 */
-	private EncoderOutputRequest createPlainEncoderOutputRequst(String outputUrl, String fileName) {
-		EncoderOutputRequest output = new EncoderOutputRequest();
-		output.setCredentials(credentials);
-		output.setUrl(outputUrl);
-		output.setPublic(true);
-		return output;
+		return factory.createEncoderOutputRequest(inputData, credentials);
 	}
 
 	/**
