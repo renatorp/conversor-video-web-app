@@ -36,9 +36,6 @@ public class IndexController {
 	@Value("${app.dir-original-videos}")
 	private String inputDir;
 
-	@Value("${app.url-format-s3-output}")
-	private String outputUrlTemplate;
-
 	/**
 	 * Exibe página inicial
 	 */
@@ -65,7 +62,7 @@ public class IndexController {
 
 		model.addAttribute("videoUrl", encodeVideoUrl);
 
-		return "redirect:/visualizarVideo/";
+		return "redirect:/visualizarVideo";
 	}
 
 	/**
