@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -47,6 +48,17 @@ public class IndexController {
 		return "index";
 	}
 
+	@GetMapping(path = "/video/{fileName}/{ext}")
+	public String index(@PathVariable("fileName") String fileName, @PathVariable("ext") String ext, Model model) {
+		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
+
+		String urlFile = s3StorageService.getUrlFile(outputDir + "/" + fileName + "." + ext);
+		model.addAttribute("videoUrl", urlFile);
+		model.addAttribute("videoContentType", "video/" + ext);
+
+		return "index";
+	}
+
 	@PostMapping(path = "/videos/converter")
 	public RedirectView converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody,
 			RedirectAttributes redirectAttributes) throws IOException {
@@ -58,14 +70,13 @@ public class IndexController {
 		String inputUrl = uploadToS3Storage(requestBody.getFile(), originalFileName);
 
 		VideoWebFormat videoFormat = VideoWebFormat.value(requestBody.getFormatoDestino());
-		String encodeVideoUrl = encodeVideo(fileHelper.extractName(originalFileName), inputUrl, videoFormat);
+		String fileName = fileHelper.extractName(originalFileName);
+
+		encodeAndStoreVideo(fileName, inputUrl, videoFormat);
 
 		// Redireciona para index
 		RedirectView redirectView = new RedirectView();
-		redirectView.setContextRelative(true);
-		redirectAttributes.addFlashAttribute("videoUrl", encodeVideoUrl);
-		redirectAttributes.addFlashAttribute("videoContentType", "video/" + videoFormat.getExtension());
-		redirectView.setUrl("/");
+		redirectView.setUrl("/video/" + fileName + "/" + videoFormat.getExtension());
 
 		return redirectView;
 	}
@@ -79,7 +90,7 @@ public class IndexController {
 	 * @param videoWebFormat
 	 * @return
 	 */
-	private String encodeVideo(String fileName, String inputUrl, VideoWebFormat videoWebFormat) {
+	private String encodeAndStoreVideo(String fileName, String inputUrl, VideoWebFormat videoWebFormat) {
 
 		String outputUrl = new StringBuilder().append("s3://").append(s3StorageService.getBucketName()).append("/")
 				.append(outputDir).append("/").append(fileName).append(".").append(videoWebFormat.getExtension())
