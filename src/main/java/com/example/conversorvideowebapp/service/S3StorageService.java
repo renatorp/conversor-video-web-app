@@ -26,12 +26,12 @@ public class S3StorageService {
 	/**
 	 * Envia arquivo para S3 com visibilidade pública.
 	 * 
-	 * @param fileName
+	 * @param key
 	 * @param file
 	 * @return
 	 */
-	public PutObjectResult uploadFile(String fileName, File file) {
-		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileName, file);
+	public PutObjectResult uploadFile(String key, File file) {
+		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file);
 
 		// Envia arquivo com visibilidade pública.
 		putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);

@@ -134,14 +134,14 @@ public class IndexController {
 	 */
 	private String uploadToS3Storage(MultipartFile multipartFile, String fileName) throws ApplicationException {
 
-		String filePath = inputDir + "/" + fileName;
-
 		File file = fileHelper.convertMultiPartToFile(multipartFile);
 
 		try {
 			validateVideoFile(file);
 
-			s3StorageService.uploadFile(fileName, file);
+			String filePath = inputDir + "/" + fileName;
+
+			s3StorageService.uploadFile(filePath, file);
 
 			return s3StorageService.getUrlFile(filePath);
 
