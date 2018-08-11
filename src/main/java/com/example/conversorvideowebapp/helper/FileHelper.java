@@ -14,10 +14,10 @@ public class FileHelper {
 	private static final String SLASH = "/";
 
 	@Value("${app.dir-converted-videos}")
-	private String convertedVideosDirName;
+	private String outputDir;
 
 	@Value("${app.dir-original-videos}")
-	private String originalVideosDirName;
+	private String inputDir;
 
 	/**
 	 * Converte arquivo MultipartFile para File
@@ -34,11 +34,15 @@ public class FileHelper {
 		return convFile;
 	}
 
-	public String addPathToUploadVideosDirectory(String fileName) {
-		return new StringBuilder().append(originalVideosDirName).append(SLASH).append(fileName).toString();
+	public String getInputDir() {
+		return inputDir;
 	}
 
-	public String addPathToConvertedVideosDirectory(String fileName) {
-		return new StringBuilder().append(convertedVideosDirName).append(SLASH).append(fileName).toString();
+	public String getOutputDir() {
+		return outputDir;
+	}
+
+	public String extractName(String fileName) {
+		return fileName.substring(0, fileName.lastIndexOf("."));
 	}
 }

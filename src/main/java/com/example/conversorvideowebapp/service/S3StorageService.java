@@ -85,4 +85,9 @@ public class S3StorageService {
 	public String getUrlFile(String fileName) {
 		return s3client.getUrl(bucketName, fileName).toExternalForm();
 	}
+
+	public Object getBucketName() {
+		return bucketName;
+	}
+
 }
