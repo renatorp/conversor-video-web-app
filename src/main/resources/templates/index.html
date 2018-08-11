@@ -19,6 +19,9 @@
 			</div>
 		</div>
 
+		<div th:if="${error != null}" class="alert alert-danger" role="alert">
+			<span th:text="${error}" /></div>
+
 		<form th:action="@{/videos/converter/}" method="POST"
 			th:object="${novoVideo}" enctype="multipart/form-data">
 			<div class="input-group mb-3">

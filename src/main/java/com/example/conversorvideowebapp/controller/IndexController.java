@@ -1,20 +1,27 @@
 package com.example.conversorvideowebapp.controller;
 
+import java.io.File;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.conversorvideowebapp.enums.VideoWebFormat;
+import com.example.conversorvideowebapp.exception.ApplicationException;
+import com.example.conversorvideowebapp.exception.ValidationException;
 import com.example.conversorvideowebapp.helper.FileHelper;
 import com.example.conversorvideowebapp.service.EncoderService;
 import com.example.conversorvideowebapp.service.S3StorageService;
@@ -23,6 +30,8 @@ import com.example.conversorvideowebapp.vo.EncodeVideoInputVO;
 
 @Controller
 public class IndexController {
+
+	private static final Logger log = LoggerFactory.getLogger(IndexController.class);
 
 	@Autowired
 	private S3StorageService s3StorageService;
@@ -60,25 +69,38 @@ public class IndexController {
 	}
 
 	@PostMapping(path = "/videos/converter")
-	public RedirectView converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody,
+	public ModelAndView converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody,
 			RedirectAttributes redirectAttributes) throws IOException {
 
-		// TODO Validar formato de arquivos enviados
+		try {
+			validateRequest(requestBody);
 
-		String originalFileName = requestBody.getFile().getOriginalFilename();
+			String originalFileName = requestBody.getFile().getOriginalFilename();
 
-		String inputUrl = uploadToS3Storage(requestBody.getFile(), originalFileName);
+			String inputUrl = uploadToS3Storage(requestBody.getFile(), originalFileName);
 
-		VideoWebFormat videoFormat = VideoWebFormat.value(requestBody.getFormatoDestino());
-		String fileName = fileHelper.extractName(originalFileName);
+			VideoWebFormat videoFormat = VideoWebFormat.value(requestBody.getFormatoDestino());
+			String fileName = fileHelper.extractName(originalFileName);
 
-		encodeAndStoreVideo(fileName, inputUrl, videoFormat);
+			encodeAndStoreVideo(fileName, inputUrl, videoFormat);
 
-		// Redireciona para index
-		RedirectView redirectView = new RedirectView();
-		redirectView.setUrl("/video/" + fileName + "/" + videoFormat.getExtension());
+			// Redireciona para index
+			RedirectView redirectView = new RedirectView();
+			redirectView.setUrl("/video/" + fileName + "/" + videoFormat.getExtension());
 
-		return redirectView;
+			return new ModelAndView(redirectView);
+
+		} catch (ValidationException e) {
+			model.addAttribute("novoVideo", requestBody);
+			model.addAttribute("error", e.getMessage());
+			return new ModelAndView("index");
+
+		} catch (ApplicationException e) {
+			log.error(e.getMessage(), e);
+			model.addAttribute("novoVideo", requestBody);
+			model.addAttribute("error", "Ocorreu um erro inesperado no servidor!");
+			return new ModelAndView("index");
+		}
 	}
 
 	/**
@@ -106,14 +128,63 @@ public class IndexController {
 	 * @param fileName
 	 * @return
 	 * @throws IOException
+	 * @throws ApplicationException
 	 */
-	private String uploadToS3Storage(MultipartFile file, String fileName) throws IOException {
+	private String uploadToS3Storage(MultipartFile multipartFile, String fileName)
+			throws IOException, ApplicationException {
 
 		String filePath = inputDir + "/" + fileName;
 
-		s3StorageService.uploadMultipartFile(filePath, file);
+		File file = fileHelper.convertMultiPartToFile(multipartFile);
 
-		return s3StorageService.getUrlFile(filePath);
+		try {
+			validateVideoFile(file);
+
+			s3StorageService.uploadFile(fileName, file);
+
+			return s3StorageService.getUrlFile(filePath);
+
+		} finally {
+			file.delete(); // Deleta arquivo temporário
+		}
+	}
+
+	/**
+	 * Valida se arquivo informado é de vídeo
+	 * 
+	 * @param file
+	 * @throws ApplicationException
+	 */
+	private void validateVideoFile(File file) throws ApplicationException {
+		try {
+			if (!java.nio.file.Files.probeContentType(file.toPath()).startsWith("video/")) {
+				throw new ValidationException("Arquivo inválido!");
+			}
+		} catch (IOException e) {
+			throw new ApplicationException("Erro ao analizar arquivo", e);
+		}
+
+	}
+
+	/**
+	 * Valida inputs obrigatórios
+	 * 
+	 * @param requestBody
+	 * @throws ValidationException
+	 */
+	private void validateRequest(ConversaoVideoAttribute requestBody) throws ValidationException {
+
+		if (requestBody.getFile() == null || StringUtils.isEmpty(requestBody.getFile().getOriginalFilename())) {
+			throw new ValidationException("É obrigatório informar um vídeo");
+		}
+
+		if (requestBody.getFormatoDestino() == null) {
+			throw new ValidationException("É obrigatório informar o formato de destino");
+		}
+
+		if (!requestBody.getFile().getOriginalFilename().contains(".")) {
+			throw new ValidationException("Arquivo inválido");
+		}
 	}
 
 }
