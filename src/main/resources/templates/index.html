@@ -52,7 +52,7 @@
 		<div th:if="${outputId != null && error == null}">
 				
 			<div align="center" id="loader" >			
-				<i class="fa fa-spinner fa-spin" style="font-size:25px"></i> Processando... 
+				<i class="fa fa-spinner fa-spin" style="font-size:25px"></i> <span id="progress"></span>
 			</div>
 			
 			<script th:inline="javascript">
@@ -62,7 +62,10 @@
 						var urlOutputProgress = '/video/' + outputId + '/progress';
 						var urlOutputUrl = '/video/' + outputId + '/content';
 					    $.get(urlOutputProgress , function(data) {
-					        if (data != 'finished') {
+					        if (data.state != 'finished') {
+					        	if (data.progress != null) {
+					        		$("#progress").html('Processando... ' + Number(data.progress).toFixed(2) +  '%')
+					        	}
 					        	setTimeout(doPoll,1000);
 					        } else {
 					        	$("#loader").hide()

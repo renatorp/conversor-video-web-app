@@ -28,6 +28,7 @@ import com.example.conversorvideowebapp.service.S3StorageService;
 import com.example.conversorvideowebapp.vo.ConversaoVideoAttribute;
 import com.example.conversorvideowebapp.vo.EncodeVideoInputVO;
 import com.example.conversorvideowebapp.vo.OutputDetailResponseBody;
+import com.example.conversorvideowebapp.vo.OutputProgressResponseBody;
 
 @Controller
 public class IndexController {
@@ -75,8 +76,8 @@ public class IndexController {
 
 	@GetMapping(path = "/video/{outputId}/progress")
 	@ResponseBody
-	public String getVideoProcessingProgress(@PathVariable("outputId") String outputId) {
-		return enconderService.getOutputProgress(outputId).getState();
+	public OutputProgressResponseBody getVideoProcessingProgress(@PathVariable("outputId") String outputId) {
+		return enconderService.getOutputProgress(outputId);
 	}
 
 	@GetMapping(path = "/video/{outputId}/content")
