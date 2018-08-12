@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -56,15 +57,35 @@ public class IndexController {
 		return "index";
 	}
 
-	@GetMapping(path = "/video/{fileName}/{ext}")
-	public String showVideo(@PathVariable("fileName") String fileName, @PathVariable("ext") String ext, Model model) {
+	@GetMapping(path = "/video/{outputId}")
+	public String showVideo(@PathVariable("outputId") String outputId, Model model) {
 		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
-
-		String urlFile = s3StorageService.getUrlFile(outputDir + "/" + fileName + "." + ext);
-		model.addAttribute("videoUrl", urlFile);
-		model.addAttribute("videoContentType", "video/" + ext);
-
+		model.addAttribute("outputId", outputId);
 		return "index";
+	}
+
+	@GetMapping(path = "/video/{outputId}/progress")
+	@ResponseBody
+	public String getVideoProcessingProgress(@PathVariable("outputId") String outputId) {
+		try {
+			return enconderService.getOutputProgress(outputId).getState();
+		} catch (ApplicationException e) {
+			log.error(e.getMessage(), e);
+			return null;
+		}
+	}
+
+	@GetMapping(path = "/video/{outputId}/content")
+	public String getVideoContent(@PathVariable("outputId") String outputId, Model model) {
+		try {
+			String url = enconderService.getOutputDetail(outputId).getUrl();
+			model.addAttribute("videoUrl", url);
+			return "index :: videoPlayer";
+
+		} catch (ApplicationException e) {
+			log.error(e.getMessage(), e);
+			return "index";
+		}
 	}
 
 	@PostMapping(path = "/video")
@@ -81,11 +102,10 @@ public class IndexController {
 			VideoWebFormat videoFormat = VideoWebFormat.value(requestBody.getFormatoDestino());
 			String fileName = fileHelper.extractName(originalFileName);
 
-			encodeAndStoreVideo(fileName, inputUrl, videoFormat);
+			String outputId = encodeAndStoreVideo(fileName, inputUrl, videoFormat);
 
-			// Redireciona para index
 			RedirectView redirectView = new RedirectView();
-			redirectView.setUrl("/video/" + fileName + "/" + videoFormat.getExtension());
+			redirectView.setUrl("/video/" + outputId);
 
 			return new ModelAndView(redirectView);
 

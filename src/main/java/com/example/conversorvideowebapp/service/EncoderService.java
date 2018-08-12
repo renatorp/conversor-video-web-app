@@ -34,7 +34,13 @@ public class EncoderService {
 	private String zencoderApiKey;
 
 	@Value("${app.zencoder.api.url.createJob}")
-	private String zencoderUrl;
+	private String zencoderCreateJobUrl;
+
+	@Value("${app.zencoder.api.url.outputProgress}")
+	private String zencoderOutputProgressUrl;
+
+	@Value("${app.zencoder.api.url.outputDetail}")
+	private String zencoderOutputDetailUrl;
 
 	/**
 	 * Converte video localizado em url informada para um vídeo nos padrões de
@@ -55,10 +61,10 @@ public class EncoderService {
 
 			HttpEntity<EncoderInputRequestBody> entity = createRequestBody(inputData);
 
-			ResponseEntity<EncoderResponseBody> response = restTemplate.postForEntity(zencoderUrl, entity,
+			ResponseEntity<EncoderResponseBody> response = restTemplate.postForEntity(zencoderCreateJobUrl, entity,
 					EncoderResponseBody.class);
 
-			return response.getBody().getOutputs().iterator().next().getUrl();
+			return response.getBody().getOutputs().iterator().next().getId();
 
 		} catch (RestClientException e) {
 			throw new ApplicationException("Ocorreu um erro ao invocar operação rest.", e);
@@ -80,9 +86,10 @@ public class EncoderService {
 			RestTemplate restTemplate = new RestTemplate();
 
 			HttpEntity<String> entity = new HttpEntity<>(outputId, createGetHeaders());
+			String url = zencoderOutputProgressUrl.replace("{id}", outputId);
 
-			ResponseEntity<OutputProgressResponseBody> response = restTemplate.exchange(zencoderUrl, HttpMethod.GET,
-					entity, OutputProgressResponseBody.class);
+			ResponseEntity<OutputProgressResponseBody> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+					OutputProgressResponseBody.class);
 
 			return response.getBody();
 
@@ -104,8 +111,10 @@ public class EncoderService {
 			RestTemplate restTemplate = new RestTemplate();
 			HttpEntity<String> entity = new HttpEntity<>(outputId, createGetHeaders());
 
-			ResponseEntity<OutputDetailResponseBody> response = restTemplate.exchange(zencoderUrl, HttpMethod.GET,
-					entity, OutputDetailResponseBody.class);
+			String url = zencoderOutputDetailUrl.replace("{id}", outputId);
+
+			ResponseEntity<OutputDetailResponseBody> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+					OutputDetailResponseBody.class);
 
 			return response.getBody();
 

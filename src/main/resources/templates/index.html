@@ -50,17 +50,44 @@
 
 		<p />
 
-		<div th:if="${videoUrl != null}">
-
-			<video controls>
-				<source th:src="${videoUrl}" type="video/webm">
-				<source th:src="${videoUrl}" type="video/ogg">
-				<source th:src="${videoUrl}" type="video/mp4">
-				<p>
-					Your browser doesn't support HTML5 video. Here is a <a
-						th:href="${videoUrl}">link to the video</a> instead.
-				</p>
-			</video>
+		<div th:if="${outputId != null}">
+			
+		<div align="center" >			
+			<i class="fa fa-spinner fa-spin" id="loader" style="font-size:25px"></i>
+		</div>
+			
+			<script th:inline="javascript">
+				/*<![CDATA[*/
+					var doPoll = function() {
+						var outputId = /*[[${outputId}]]*/;
+						var urlOutputProgress = '/video/' + outputId + '/progress';
+						var urlOutputUrl = '/video/' + outputId + '/content';
+					    $.get(urlOutputProgress , function(data) {
+					        if (data != 'finished') {
+					        	setTimeout(doPoll,1000);
+					        } else {
+					        	$("#loader").hide()
+					        	$("#videoPlayer").load(urlOutputUrl);
+					        }
+					    });
+					}
+					doPoll();
+				/*]]>*/
+			</script>
+				
+			<div id="videoPlayer" >
+				<div th:fragment="videoPlayer" th:unless="${videoUrl == null}" >
+					<video controls>
+						<source th:src="${videoUrl}" type="video/webm">
+						<source th:src="${videoUrl}" type="video/ogg">
+						<source th:src="${videoUrl}" type="video/mp4">
+						<p>
+							Your browser doesn't support HTML5 video. Here is a <a
+								th:href="${videoUrl}">link to the video</a> instead.
+						</p>
+					</video>
+				</div> 
+			</div>
 
 		</div>
 
