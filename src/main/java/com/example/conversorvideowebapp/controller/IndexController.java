@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.conversorvideowebapp.enums.VideoWebFormat;
@@ -42,7 +41,7 @@ public class IndexController {
 	private FileHelper fileHelper;
 
 	@Autowired
-	private EncoderService enconderService;
+	private EncoderService encoderService;
 
 	@Value("${app.dir-converted-videos}")
 	private String outputDir;
@@ -63,7 +62,7 @@ public class IndexController {
 	public String showVideo(@PathVariable("outputId") String outputId, Model model) {
 		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
 
-		OutputDetailResponseBody outputDetail = enconderService.getOutputDetail(outputId);
+		OutputDetailResponseBody outputDetail = encoderService.getOutputDetail(outputId);
 
 		if (outputDetail == null) {
 			model.addAttribute("error", "Vídeo não encontrado!");
@@ -77,19 +76,18 @@ public class IndexController {
 	@GetMapping(path = "/video/{outputId}/progress")
 	@ResponseBody
 	public OutputProgressResponseBody getVideoProcessingProgress(@PathVariable("outputId") String outputId) {
-		return enconderService.getOutputProgress(outputId);
+		return encoderService.getOutputProgress(outputId);
 	}
 
 	@GetMapping(path = "/video/{outputId}/content")
 	public String getVideoContent(@PathVariable("outputId") String outputId, Model model) {
-		String url = enconderService.getOutputDetail(outputId).getUrl();
+		String url = encoderService.getOutputDetail(outputId).getUrl();
 		model.addAttribute("videoUrl", url);
 		return "index :: videoPlayer";
 	}
 
 	@PostMapping(path = "/video")
-	public ModelAndView converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody,
-			RedirectAttributes redirectAttributes) throws IOException {
+	public ModelAndView converterVideo(Model model, @ModelAttribute("requestBody") ConversaoVideoAttribute requestBody) {
 
 		try {
 			validateRequest(requestBody);
@@ -138,7 +136,7 @@ public class IndexController {
 				.append(outputDir).append("/").append(fileName).append(".").append(videoWebFormat.getExtension())
 				.toString();
 
-		return enconderService.encodeVideoForWeb(new EncodeVideoInputVO(inputUrl, fileName, outputUrl, videoWebFormat));
+		return encoderService.encodeVideoForWeb(new EncodeVideoInputVO(inputUrl, fileName, outputUrl, videoWebFormat));
 	}
 
 	/**
@@ -150,14 +148,19 @@ public class IndexController {
 	 * @throws IOException
 	 * @throws ApplicationException
 	 */
-	private String uploadToS3Storage(MultipartFile multipartFile, String fileName)
-			throws ApplicationException, IOException {
+	private String uploadToS3Storage(MultipartFile multipartFile, String fileName) throws ApplicationException {
 
-		String filePath = inputDir + "/" + fileName;
+		try {
+			
+			String filePath = inputDir + "/" + fileName;
 
-		s3StorageService.uploadFile(filePath, multipartFile.getInputStream());
+			s3StorageService.uploadFile(filePath, multipartFile.getInputStream());
 
-		return s3StorageService.getUrlFile(filePath);
+			return s3StorageService.getUrlFile(filePath);
+			
+		} catch (IOException e) {
+			throw new ApplicationException("Ocorreu um erro ao armazer arquivo em S3", e);
+		}
 
 	}
 
@@ -181,5 +184,5 @@ public class IndexController {
 			throw new ValidationException("Arquivo inválido");
 		}
 	}
-
+	
 }
