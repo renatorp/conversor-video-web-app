@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -80,22 +82,17 @@ public class EncoderService {
 	 * @return
 	 * @throws ApplicationException
 	 */
-	public OutputProgressResponseBody getOutputProgress(String outputId) throws ApplicationException {
+	public OutputProgressResponseBody getOutputProgress(String outputId) {
 
-		try {
-			RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = new RestTemplate();
 
-			HttpEntity<String> entity = new HttpEntity<>(outputId, createGetHeaders());
-			String url = zencoderOutputProgressUrl.replace("{id}", outputId);
+		HttpEntity<String> entity = new HttpEntity<>(outputId, createGetHeaders());
+		String url = zencoderOutputProgressUrl.replace("{id}", outputId);
 
-			ResponseEntity<OutputProgressResponseBody> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-					OutputProgressResponseBody.class);
+		ResponseEntity<OutputProgressResponseBody> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+				OutputProgressResponseBody.class);
 
-			return response.getBody();
-
-		} catch (RestClientException e) {
-			throw new ApplicationException("Ocorreu um erro ao invocar operação rest.", e);
-		}
+		return response.getBody();
 	}
 
 	/**
@@ -105,7 +102,7 @@ public class EncoderService {
 	 * @return
 	 * @throws ApplicationException
 	 */
-	public OutputDetailResponseBody getOutputDetail(String outputId) throws ApplicationException {
+	public OutputDetailResponseBody getOutputDetail(String outputId) {
 
 		try {
 			RestTemplate restTemplate = new RestTemplate();
@@ -118,8 +115,11 @@ public class EncoderService {
 
 			return response.getBody();
 
-		} catch (RestClientException e) {
-			throw new ApplicationException("Ocorreu um erro ao invocar operação rest.", e);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				return null;
+			}
+			throw e;
 		}
 	}
 

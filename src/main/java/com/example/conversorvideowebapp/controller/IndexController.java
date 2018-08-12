@@ -27,6 +27,7 @@ import com.example.conversorvideowebapp.service.EncoderService;
 import com.example.conversorvideowebapp.service.S3StorageService;
 import com.example.conversorvideowebapp.vo.ConversaoVideoAttribute;
 import com.example.conversorvideowebapp.vo.EncodeVideoInputVO;
+import com.example.conversorvideowebapp.vo.OutputDetailResponseBody;
 
 @Controller
 public class IndexController {
@@ -60,6 +61,14 @@ public class IndexController {
 	@GetMapping(path = "/video/{outputId}")
 	public String showVideo(@PathVariable("outputId") String outputId, Model model) {
 		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
+
+		OutputDetailResponseBody outputDetail = enconderService.getOutputDetail(outputId);
+
+		if (outputDetail == null) {
+			model.addAttribute("error", "Vídeo não encontrado!");
+			return "index";
+		}
+
 		model.addAttribute("outputId", outputId);
 		return "index";
 	}
@@ -67,25 +76,14 @@ public class IndexController {
 	@GetMapping(path = "/video/{outputId}/progress")
 	@ResponseBody
 	public String getVideoProcessingProgress(@PathVariable("outputId") String outputId) {
-		try {
-			return enconderService.getOutputProgress(outputId).getState();
-		} catch (ApplicationException e) {
-			log.error(e.getMessage(), e);
-			return null;
-		}
+		return enconderService.getOutputProgress(outputId).getState();
 	}
 
 	@GetMapping(path = "/video/{outputId}/content")
 	public String getVideoContent(@PathVariable("outputId") String outputId, Model model) {
-		try {
-			String url = enconderService.getOutputDetail(outputId).getUrl();
-			model.addAttribute("videoUrl", url);
-			return "index :: videoPlayer";
-
-		} catch (ApplicationException e) {
-			log.error(e.getMessage(), e);
-			return "index";
-		}
+		String url = enconderService.getOutputDetail(outputId).getUrl();
+		model.addAttribute("videoUrl", url);
+		return "index :: videoPlayer";
 	}
 
 	@PostMapping(path = "/video")
