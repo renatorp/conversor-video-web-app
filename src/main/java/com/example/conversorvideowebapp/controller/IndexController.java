@@ -1,6 +1,5 @@
 package com.example.conversorvideowebapp.controller;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -51,14 +50,14 @@ public class IndexController {
 	/**
 	 * Exibe página inicial
 	 */
-	@GetMapping(path = "/")
+	@GetMapping(path = { "/", "/video" })
 	public String index(Model model) {
 		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
 		return "index";
 	}
 
 	@GetMapping(path = "/video/{fileName}/{ext}")
-	public String index(@PathVariable("fileName") String fileName, @PathVariable("ext") String ext, Model model) {
+	public String showVideo(@PathVariable("fileName") String fileName, @PathVariable("ext") String ext, Model model) {
 		model.addAttribute("novoVideo", new ConversaoVideoAttribute());
 
 		String urlFile = s3StorageService.getUrlFile(outputDir + "/" + fileName + "." + ext);
@@ -68,7 +67,7 @@ public class IndexController {
 		return "index";
 	}
 
-	@PostMapping(path = "/videos/converter")
+	@PostMapping(path = "/video")
 	public ModelAndView converterVideo(Model model, @ModelAttribute ConversaoVideoAttribute requestBody,
 			RedirectAttributes redirectAttributes) throws IOException {
 
@@ -132,38 +131,14 @@ public class IndexController {
 	 * @throws IOException
 	 * @throws ApplicationException
 	 */
-	private String uploadToS3Storage(MultipartFile multipartFile, String fileName) throws ApplicationException {
+	private String uploadToS3Storage(MultipartFile multipartFile, String fileName)
+			throws ApplicationException, IOException {
 
-		File file = fileHelper.convertMultiPartToFile(multipartFile);
+		String filePath = inputDir + "/" + fileName;
 
-		try {
-			validateVideoFile(file);
+		s3StorageService.uploadFile(filePath, multipartFile.getInputStream());
 
-			String filePath = inputDir + "/" + fileName;
-
-			s3StorageService.uploadFile(filePath, file);
-
-			return s3StorageService.getUrlFile(filePath);
-
-		} finally {
-			file.delete(); // Deleta arquivo temporário
-		}
-	}
-
-	/**
-	 * Valida se arquivo informado é de vídeo
-	 * 
-	 * @param file
-	 * @throws ApplicationException
-	 */
-	private void validateVideoFile(File file) throws ApplicationException {
-		try {
-			if (!java.nio.file.Files.probeContentType(file.toPath()).startsWith("video/")) {
-				throw new ValidationException("Arquivo inválido!");
-			}
-		} catch (IOException e) {
-			throw new ApplicationException("Erro ao analizar arquivo", e);
-		}
+		return s3StorageService.getUrlFile(filePath);
 
 	}
 

@@ -1,6 +1,6 @@
 package com.example.conversorvideowebapp.service;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
@@ -29,9 +30,13 @@ public class S3StorageService {
 	 * @param key
 	 * @param file
 	 * @return
+	 * @throws IOException
 	 */
-	public PutObjectResult uploadFile(String key, File file) {
-		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file);
+	public PutObjectResult uploadFile(String key, InputStream is) throws IOException {
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentLength(is.available());
+
+		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, is, metadata);
 
 		// Envia arquivo com visibilidade pública.
 		putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);
