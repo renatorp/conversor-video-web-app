@@ -62,15 +62,19 @@
 						var urlOutputProgress = '/video/' + outputId + '/progress';
 						var urlOutputUrl = '/video/' + outputId + '/content';
 					    $.get(urlOutputProgress , function(data) {
-					        if (data.state != 'finished') {
+					        if (data.state == 'finished') {
+					        	$("#loader").hide()
+					        	$("#videoPlayer").load(urlOutputUrl);
+					        	
+					        } else if (data.state == 'no_input'){
+					        	$("#loader").html("O arquivo não pôde ser convertido!");
+					        	
+					        } else {
 					        	if (data.progress != null) {
 					        		$("#progress").html('Processando... ' + Number(data.progress).toFixed(2) +  '%')
 					        	}
 					        	setTimeout(doPoll,1000);
-					        } else {
-					        	$("#loader").hide()
-					        	$("#videoPlayer").load(urlOutputUrl);
-					        }
+					        } 
 					    });
 					}
 					doPoll();
